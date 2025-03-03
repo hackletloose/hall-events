@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Event Details{% endblock %}
+
+{% block content %}
+<h1>{{ event.name }}</h1>
+
+{% if event.description %}
+  <p><strong>Beschreibung:</strong> {{ event.description }}</p>
+{% endif %}
+
+<p>
+  <b>Briefing:</b> {{ event.date_briefing }}<br>
+  <b>Eventstart:</b> {{ event.date_eventstart }}<br>
+  <b>Spielstart:</b> {{ event.date_gamestart }}<br>
+  <b>Server:</b> {{ event.server_info }}<br>
+  
+  {% if event.password %}
+    <b>Passwort:</b> {{ event.password }}<br>
+  {% else %}
+    <b>Passwort:</b> -<br>
+  {% endif %}
+
+  {% if event.recurrence_pattern and event.recurrence_pattern != 'none' %}
+    <b>Wiederholung:</b>
+    {% if event.recurrence_pattern == 'weekly' %}
+      Wöchentlich
+    {% elif event.recurrence_pattern == 'biweekly' %}
+      Alle 2 Wochen
+    {% elif event.recurrence_pattern == 'monthly' %}
+      Monatlich
+    {% elif event.recurrence_pattern == 'quarterly' %}
+      Quartalsweise
+    {% else %}
+      {{ event.recurrence_pattern }}
+    {% endif %}
+    <br>
+  {% endif %}
+</p>
+
+<div class="row">
+  <!-- Linke Spalte: Alliierte -->
+  <div class="col-md-6">
+    <h2>Alliierte</h2>
+
+    <h4>Infanterie</h4>
+    {% if allies_data.inf %}
+      {% for squad in allies_data.inf %}
+        <div class="mb-2">
+          <b>Inf-Squad #{{ loop.index }} (max 6):</b><br>
+          {% for player_name in squad %}
+            - {{ player_name }}<br>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Keine Infanterie-Spieler angemeldet.</p>
+    {% endif %}
+
+    <h4>Panzer</h4>
+    {% if allies_data.tank %}
+      {% for squad in allies_data.tank %}
+        <div class="mb-2">
+          <b>Tank-Squad #{{ loop.index }} (max 3):</b><br>
+          {% for player_name in squad %}
+            - {{ player_name }}<br>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Keine Panzer-Spieler angemeldet.</p>
+    {% endif %}
+
+    <h4>Sniper</h4>
+    {% if allies_data.sniper %}
+      {% for squad in allies_data.sniper %}
+        <div class="mb-2">
+          <b>Sniper-Squad #{{ loop.index }} (max 2):</b><br>
+          {% for player_name in squad %}
+            - {{ player_name }}<br>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Keine Sniper-Spieler angemeldet.</p>
+    {% endif %}
+
+    <h4>Commander</h4>
+    {% if allies_data.commander and allies_data.commander[0] %}
+      <p>
+        {% for player_name in allies_data.commander[0] %}
+          {{ player_name }}<br>
+        {% endfor %}
+      </p>
+    {% else %}
+      <p>Kein Commander angemeldet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Rechte Spalte: Achsenmächte -->
+  <div class="col-md-6">
+    <h2>Achsenmächte</h2>
+
+    <h4>Infanterie</h4>
+    {% if axis_data.inf %}
+      {% for squad in axis_data.inf %}
+        <div class="mb-2">
+          <b>Inf-Squad #{{ loop.index }} (max 6):</b><br>
+          {% for player_name in squad %}
+            - {{ player_name }}<br>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Keine Infanterie-Spieler angemeldet.</p>
+    {% endif %}
+
+    <h4>Panzer</h4>
+    {% if axis_data.tank %}
+      {% for squad in axis_data.tank %}
+        <div class="mb-2">
+          <b>Tank-Squad #{{ loop.index }} (max 3):</b><br>
+          {% for player_name in squad %}
+            - {{ player_name }}<br>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Keine Panzer-Spieler angemeldet.</p>
+    {% endif %}
+
+    <h4>Sniper</h4>
+    {% if axis_data.sniper %}
+      {% for squad in axis_data.sniper %}
+        <div class="mb-2">
+          <b>Sniper-Squad #{{ loop.index }} (max 2):</b><br>
+          {% for player_name in squad %}
+            - {{ player_name }}<br>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Keine Sniper-Spieler angemeldet.</p>
+    {% endif %}
+
+    <h4>Commander</h4>
+    {% if axis_data.commander and axis_data.commander[0] %}
+      <p>
+        {% for player_name in axis_data.commander[0] %}
+          {{ player_name }}<br>
+        {% endfor %}
+      </p>
+    {% else %}
+      <p>Kein Commander angemeldet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<a class="btn btn-secondary" href="{{ url_for('routes.index') }}">Zur Übersicht</a>
+{% endblock %}

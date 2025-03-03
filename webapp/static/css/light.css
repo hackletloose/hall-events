@@ -1,0 +1,83 @@
+/* light.css */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+  }
+  
+  /* Navbar und Hintergrund */
+  .navbar, .bg-dark {
+    background-color: #e9ecef !important;
+    color: #212529 !important;
+  }
+  .nav-link, .navbar-brand {
+    color: #212529 !important;
+  }
+  .nav-link:hover, .navbar-brand:hover {
+    color: #000 !important;
+  }
+  
+  /* Tabellen */
+  .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #f2f2f2 !important;
+  }
+  .table thead th {
+    background-color: #e9ecef;
+    color: #212529;
+  }
+  
+  /* Buttons (zur besseren Lesbarkeit angepasst) */
+  .btn-primary {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+  }
+  .btn-primary:hover {
+    background-color: #0b5ed7;
+    color: #fff;
+  }
+  .btn-info {
+    background-color: #0dcaf0;
+    color: #000;
+    border-color: #0dcaf0;
+  }
+  .btn-info:hover {
+    background-color: #31d2f2;
+    color: #000;
+  }
+  .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+  }
+  .btn-danger:hover {
+    background-color: #bb2d3b;
+    color: #fff;
+  }
+  .btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+  }
+  .btn-secondary:hover {
+    background-color: #5c636a;
+    color: #fff;
+  }
+  
+  /* Outline-Light-Button (für das Umschalten im Light-Theme) */
+  .btn-outline-light {
+    color: #343a40 !important;
+    border-color: #343a40 !important;
+  }
+  .btn-outline-light:hover {
+    background-color: #343a40 !important;
+    color: #ffffff !important;
+  }
+  
+  /* Links */
+  a {
+    color: #0d6efd;
+  }
+  a:hover {
+    color: #0b5ed7;
+  }
+  

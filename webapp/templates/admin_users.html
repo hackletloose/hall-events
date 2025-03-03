@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Userverwaltung{% endblock %}
+{% block content %}
+<h1>Userverwaltung</h1>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>Rolle</th>
+      <th>Aktionen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in all_users %}
+    <tr>
+      <td>{{ u[0] }}</td>
+      <td>{{ u[1] }}</td>
+      <td>{{ u[2] }}</td>
+      <td>
+        {% if u[1] == 'superadmin' %}
+          <!-- Superadmin kann notfalls gelöscht werden, 
+               aber dann kommt er nie wieder -->
+        {% endif %}
+        <a class="btn btn-warning btn-sm me-2"
+           href="{{ url_for('auth.change_role', user_id=u[0]) }}">
+          Rolle ändern
+        </a>
+        <form method="POST"
+              action="{{ url_for('auth.delete_user', user_id=u[0]) }}"
+              style="display:inline;">
+          <button class="btn btn-danger btn-sm"
+                  type="submit"
+                  onclick="return confirm('Soll Benutzer \'{{ u[1] }}\' wirklich gelöscht werden?')">
+            Löschen
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Invite-Link -->
+<a href="{{ url_for('auth.invite_user') }}" class="btn btn-primary">
+  Neuen User einladen
+</a>
+{% endblock %}

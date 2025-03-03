@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Events Übersicht{% endblock %}
+
+{% block content %}
+<h1>Events Übersicht</h1>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Start</th>
+      <th>Aktionen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in events %}
+    <tr>
+      <td>{{ e[0] }}</td>
+      <td>{{ e[1] }}</td>
+      <td>{{ e[2] }}</td>
+      <td>
+        <!-- Link zur Detailseite -->
+        <a class="btn btn-info btn-sm"
+           href="{{ url_for('routes.event_detail', event_id=e[0]) }}">
+          Details
+        </a>
+        
+        <!-- Link zum Bearbeiten (NEU) -->
+        <a class="btn btn-secondary btn-sm"
+           href="{{ url_for('routes.edit_event', event_id=e[0]) }}">
+          Bearbeiten
+        </a>
+
+        <!-- Link zum Löschen -->
+        <a class="btn btn-danger btn-sm"
+           href="{{ url_for('routes.delete_event', event_id=e[0]) }}">
+          Löschen
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<a class="btn btn-primary" href="{{ url_for('routes.create_event') }}">Neues Event</a>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Event bearbeiten{% endblock %}
+
+{% block content %}
+<h1>Event bearbeiten</h1>
+<form method="POST">
+
+  <div class="mb-3">
+    <label class="form-label">Name des Events</label>
+    <input type="text" class="form-control" name="name" 
+           value="{{ event.name or '' }}" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Beschreibung</label>
+    <textarea class="form-control" name="description" rows="3">{{ event.description }}</textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Datum &amp; Uhrzeit Briefing</label>
+    <input type="datetime-local" class="form-control" name="date_briefing"
+           value="{{ event.date_briefing|safe }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Datum &amp; Uhrzeit Eventstart</label>
+    <input type="datetime-local" class="form-control" name="date_eventstart"
+           value="{{ event.date_eventstart|safe }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Datum &amp; Uhrzeit Spielstart</label>
+    <input type="datetime-local" class="form-control" name="date_gamestart"
+           value="{{ event.date_gamestart|safe }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Server Info</label>
+    <input type="text" class="form-control" name="server_info" 
+           value="{{ event.server_info or '' }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Passwort</label>
+    <input type="text" class="form-control" name="password"
+           value="{{ event.password or '' }}">
+  </div>
+
+  <!-- Neu: Wiederholungsmuster, jetzt mit biweekly -->
+  <div class="mb-3">
+    <label class="form-label">Wiederholung</label>
+    <select class="form-select" name="recurrence_pattern">
+      <option value="none" {% if event.recurrence_pattern=='none' %}selected{% endif %}>Keine</option>
+      <option value="weekly" {% if event.recurrence_pattern=='weekly' %}selected{% endif %}>Wöchentlich</option>
+      <option value="biweekly" {% if event.recurrence_pattern=='biweekly' %}selected{% endif %}>Alle 2 Wochen</option>
+      <option value="monthly" {% if event.recurrence_pattern=='monthly' %}selected{% endif %}>Monatlich</option>
+      <option value="quarterly" {% if event.recurrence_pattern=='quarterly' %}selected{% endif %}>Quartalsweise</option>
+    </select>
+  </div>
+
+  <hr>
+  <h5>Alliierte</h5>
+  <div class="mb-3">
+    <label class="form-label">Infanterie-Squads</label>
+    <input type="number" class="form-control" name="inf_squads_allies"
+           value="{{ event.inf_squads_allies or 5 }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Panzer-Squads</label>
+    <input type="number" class="form-control" name="tank_squads_allies"
+           value="{{ event.tank_squads_allies or 3 }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Sniper-Squads (max 2)</label>
+    <input type="number" class="form-control" name="sniper_squads_allies"
+           value="{{ event.sniper_squads_allies or 2 }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Commander (max 1)</label>
+    <input type="number" class="form-control" name="max_commanders_allies"
+           value="{{ event.max_commanders_allies or 1 }}">
+  </div>
+
+  <hr>
+  <h5>Achsenmächte</h5>
+  <div class="mb-3">
+    <label class="form-label">Infanterie-Squads</label>
+    <input type="number" class="form-control" name="inf_squads_axis"
+           value="{{ event.inf_squads_axis or 5 }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Panzer-Squads</label>
+    <input type="number" class="form-control" name="tank_squads_axis"
+           value="{{ event.tank_squads_axis or 3 }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Sniper-Squads (max 2)</label>
+    <input type="number" class="form-control" name="sniper_squads_axis"
+           value="{{ event.sniper_squads_axis or 2 }}">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Commander (max 1)</label>
+    <input type="number" class="form-control" name="max_commanders_axis"
+           value="{{ event.max_commanders_axis or 1 }}">
+  </div>
+
+  <button type="submit" class="btn btn-primary">Speichern</button>
+  <a class="btn btn-secondary" href="{{ url_for('routes.event_detail', event_id=event.id) }}">
+    Abbrechen
+  </a>
+</form>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Neues Event erstellen{% endblock %}
+
+{% block content %}
+<h1>Neues Event erstellen</h1>
+<form method="POST">
+  <div class="mb-3">
+    <label class="form-label">Name des Events</label>
+    <input type="text" class="form-control" name="name" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Beschreibung</label>
+    <textarea class="form-control" name="description" rows="3"></textarea>
+  </div>
+  
+  <div class="mb-3">
+    <label class="form-label">Datum &amp; Uhrzeit Briefing</label>
+    <input type="datetime-local" class="form-control" name="date_briefing">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Datum &amp; Uhrzeit Eventstart</label>
+    <input type="datetime-local" class="form-control" name="date_eventstart">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Datum &amp; Uhrzeit Spielstart</label>
+    <input type="datetime-local" class="form-control" name="date_gamestart">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Server Info</label>
+    <input type="text" class="form-control" name="server_info">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Passwort</label>
+    <input type="text" class="form-control" name="password">
+  </div>
+
+  <!-- Neu: Wiederholungsmuster mit "biweekly" -->
+  <div class="mb-3">
+    <label class="form-label">Wiederholung</label>
+    <select class="form-select" name="recurrence_pattern">
+      <option value="none" selected>Keine</option>
+      <option value="weekly">Wöchentlich</option>
+      <option value="biweekly">Alle 2 Wochen</option>
+      <option value="monthly">Monatlich</option>
+      <option value="quarterly">Quartalsweise</option>
+    </select>
+  </div>
+
+  <hr>
+  <h5>Alliierte</h5>
+  <div class="mb-3">
+    <label class="form-label">Infanterie-Squads</label>
+    <input type="number" class="form-control" name="inf_squads_allies" value="5">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Panzer-Squads</label>
+    <input type="number" class="form-control" name="tank_squads_allies" value="3">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Sniper-Squads (max 2)</label>
+    <input type="number" class="form-control" name="sniper_squads_allies" value="2">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Commander (max 1)</label>
+    <input type="number" class="form-control" name="max_commanders_allies" value="1">
+  </div>
+
+  <hr>
+  <h5>Achsenmächte</h5>
+  <div class="mb-3">
+    <label class="form-label">Infanterie-Squads</label>
+    <input type="number" class="form-control" name="inf_squads_axis" value="5">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Panzer-Squads</label>
+    <input type="number" class="form-control" name="tank_squads_axis" value="3">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Sniper-Squads (max 2)</label>
+    <input type="number" class="form-control" name="sniper_squads_axis" value="2">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Commander (max 1)</label>
+    <input type="number" class="form-control" name="max_commanders_axis" value="1">
+  </div>
+
+  <button type="submit" class="btn btn-primary">Speichern</button>
+</form>
+{% endblock %}

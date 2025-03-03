@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Neuer Einladungslink{% endblock %}
+{% block content %}
+<h1>Einladungslink erstellt</h1>
+<p>Kopiere den Link und sende ihn an den neuen Benutzer:</p>
+<pre>{{ invite_link }}</pre>
+<a class="btn btn-secondary" href="{{ url_for('auth.list_users') }}">
+  Zur User-Liste
+</a>
+{% endblock %}
