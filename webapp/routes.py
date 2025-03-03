@@ -1,5 +1,3 @@
-# webapp/routes.py
-
 import asyncio
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from datetime import datetime
@@ -7,16 +5,12 @@ import secrets
 from .db import get_connection
 from webapp.auth import login_required
 from .routes_utils import init_data_for_event
-# Bot und Variablen importieren (Achtung auf Pfad: "bot.bot" oder "bot" je nach Struktur)
+# Bot und Variablen importieren
 from bot.bot import bot, update_discord_event_embeds, CURRENT_EVENT_ID, trigger_embed_update
 
 bp = Blueprint("routes", __name__)
 
 def german_datetime_format(dt_str):
-    """
-    Erwartet einen String dt_str (z. B. '2025-02-28 20:00:00'),
-    gibt zurück '28.02.2025 20:00' oder '' bei Fehler/None.
-    """
     if not dt_str:
         return ""
     try:
@@ -59,7 +53,6 @@ def create_event():
         cmd_a = int(request.form.get("max_commanders_allies"))
         cmd_x = int(request.form.get("max_commanders_axis"))
 
-        # NEU: Wiederholungsmuster (weekly, biweekly, monthly, quarterly oder none)
         recurrence_pattern = request.form.get("recurrence_pattern", "none")
 
         conn = get_connection()
@@ -86,7 +79,7 @@ def create_event():
                 cmd_a, cmd_x,
                 datetime.now(),
                 recurrence_pattern,
-                0  # Manuell angelegte Events haben spawned_next_event=0
+                0  # spawned_next_event=0
             ),
         )
         conn.commit()
@@ -134,7 +127,6 @@ def edit_event(event_id):
         new_cmd_a = int(request.form.get("max_commanders_allies"))
         new_cmd_x = int(request.form.get("max_commanders_axis"))
 
-        # NEU: Wiederholungsmuster
         new_recurrence = request.form.get("recurrence_pattern", "none")
 
         conn2 = get_connection()
@@ -227,12 +219,10 @@ def event_detail(event_id):
     columns = [desc[0] for desc in c.description]
     event_data = dict(zip(columns, event_row))
 
-    # Datumsangaben "deutsch" formatieren
     event_data["date_briefing"] = german_datetime_format(event_data["date_briefing"])
     event_data["date_eventstart"] = german_datetime_format(event_data["date_eventstart"])
     event_data["date_gamestart"] = german_datetime_format(event_data["date_gamestart"])
 
-    # Anmeldungen (status='active')
     c.execute(
         """
         SELECT user_name, seite, rolle, status
@@ -272,7 +262,6 @@ def event_detail(event_id):
             for i in range(0, len(player_names), chunk_size)
         ]
 
-    # Temporäre Sammelstrukturen
     allies_temp = { "inf": [], "tank": [], "sniper": [], "commander": [] }
     axis_temp = { "inf": [], "tank": [], "sniper": [], "commander": [] }
 

@@ -1,5 +1,3 @@
-# bot.py
-
 import os
 import discord
 from discord.ext import commands, tasks
@@ -276,7 +274,7 @@ def build_allies_embed(event_id: int) -> discord.Embed:
                 inline=True
             )
 
-    # 1 Admin-Abzug
+    # 1 Admin-Abzug, falls gewünscht
     if total_allies > 0:
         total_allies -= 1
 
@@ -338,7 +336,7 @@ def build_axis_embed(event_id: int) -> discord.Embed:
                 inline=True
             )
 
-    # 1 Admin-Abzug
+    # 1 Admin-Abzug, falls gewünscht
     if total_axis > 0:
         total_axis -= 1
 
@@ -474,6 +472,7 @@ class AlliesRoleSelectViewEphemeral(discord.ui.View):
                 discord.SelectOption(label=display_label, value=val)
             )
 
+        # Falls gar keine regulären Rollen zur Auswahl => Warteliste
         if not self.select_menu.options:
             self.select_menu.options.append(
                 discord.SelectOption(
@@ -591,6 +590,7 @@ class AxisRoleSelectViewEphemeral(discord.ui.View):
                 discord.SelectOption(label=display_label, value=val)
             )
 
+        # Falls gar keine regulären Rollen => Warteliste
         if not self.select_menu.options:
             self.select_menu.options.append(
                 discord.SelectOption(
@@ -716,10 +716,12 @@ async def on_ready():
     print(f"Bot {bot.user} ist online.")
     load_bot_state()
 
+    # Registriere persistente Views
     bot.add_view(PersistentSignUpButtonView())
     bot.add_view(PersistentCancelView())
     print("[on_ready] PersistentSignUpButtonView und PersistentCancelView registriert.")
 
+    # Falls ein CURRENT_EVENT_ID existiert, stelle sicher, dass die Nachrichten existieren
     await ensure_event_messages()
 
     # Slash Commands synchronisieren
@@ -730,14 +732,17 @@ async def on_ready():
         print(f"Fehler beim Sync: {e}")
 
     # Tasks starten
-    if not check_for_new_events.is_running():
-        check_for_new_events.start()
-    if not check_events_for_password.is_running():
-        check_events_for_password.start()
     if not check_for_recurring_events.is_running():
         check_for_recurring_events.start()
+    if not check_events_for_password.is_running():
+        check_events_for_password.start()
 
 async def ensure_event_messages():
+    """
+    Stellt sicher, dass für das CURRENT_EVENT_ID die drei Embed-Nachrichten
+    (Info, Allies, Axis) existieren. Falls nicht (z.B. Bot-Crash),
+    werden sie neu erzeugt.
+    """
     global CURRENT_EVENT_ID
     global CURRENT_INFO_MESSAGE_ID
     global CURRENT_ALLIES_MESSAGE_ID
@@ -831,59 +836,6 @@ async def set_event_channel(interaction: discord.Interaction, channel: discord.T
     )
 
 ############################################
-# TASKS: NEUE EVENTS POSTEN
-############################################
-
-@tasks.loop(seconds=30)
-async def check_for_new_events():
-    global CURRENT_EVENT_ID
-    global CURRENT_INFO_MESSAGE_ID, CURRENT_ALLIES_MESSAGE_ID, CURRENT_AXIS_MESSAGE_ID
-    global EVENT_CHANNEL_ID
-
-    if not EVENT_CHANNEL_ID:
-        return
-
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("SELECT id FROM events ORDER BY id DESC LIMIT 1")
-    row = c.fetchone()
-    conn.close()
-
-    if not row:
-        return
-
-    newest_id = row[0]
-    if CURRENT_EVENT_ID is None or newest_id > CURRENT_EVENT_ID:
-        CURRENT_EVENT_ID = newest_id
-        channel = bot.get_channel(EVENT_CHANNEL_ID)
-
-        info_embed = build_event_info_embed(CURRENT_EVENT_ID)
-        allies_embed = build_allies_embed(CURRENT_EVENT_ID)
-        axis_embed = build_axis_embed(CURRENT_EVENT_ID)
-
-        if channel:
-            msg_info = await channel.send(embed=info_embed)
-            CURRENT_INFO_MESSAGE_ID = msg_info.id
-
-            msg_allies = await channel.send(embed=allies_embed)
-            CURRENT_ALLIES_MESSAGE_ID = msg_allies.id
-
-            msg_axis = await channel.send(embed=axis_embed, view=PersistentSignUpButtonView())
-            CURRENT_AXIS_MESSAGE_ID = msg_axis.id
-        else:
-            CURRENT_INFO_MESSAGE_ID = None
-            CURRENT_ALLIES_MESSAGE_ID = None
-            CURRENT_AXIS_MESSAGE_ID = None
-
-        save_bot_state(
-            EVENT_CHANNEL_ID,
-            CURRENT_EVENT_ID,
-            CURRENT_INFO_MESSAGE_ID,
-            CURRENT_ALLIES_MESSAGE_ID,
-            CURRENT_AXIS_MESSAGE_ID
-        )
-
-############################################
 # TASK: PASSWORT 24h VORHER
 ############################################
 
@@ -933,16 +885,17 @@ async def before_check_events():
     await bot.wait_until_ready()
 
 ############################################
-# NEU: TASK FÜR WIEDERHOLUNGS-EVENTS (inkl. biweekly)
+# WIEDERHOLUNGS-EVENTS: NEUE EVENT ERZEUGEN
+# UND GLEICH POSTEN, SOBALD DAS ALTE VORBEI IST
 ############################################
 
 @tasks.loop(minutes=30)
 async def check_for_recurring_events():
     """
-    Sucht alle Events, die in der Vergangenheit liegen, ein Wiederholungsmuster haben
-    und noch keinen Folgetermin erzeugt haben. Dann wird ein neuer Event-Datensatz
-    mit passendem Zeitversatz angelegt (weekly=+7d, biweekly=+14d, monthly=+30d, quarterly=+90d).
-    Anschließend markiert man 'spawned_next_event=1' beim alten Event.
+    Sucht alle Events, die in der Vergangenheit liegen, ein Wiederholungsmuster haben,
+    und noch keinen Folgetermin erzeugt haben. Dann wird ein neuer Event-Datensatz 
+    mit entsprechendem Zeitversatz angelegt - UND gleich im Discord-Kanal gepostet.
+    Auf diese Weise ist das nächste Event sofort nach Ende des alten Events sichtbar.
     """
     now = datetime.now()
     conn = get_connection()
@@ -970,7 +923,7 @@ async def check_for_recurring_events():
          ia, ta, sa, ix, tx, sx,
          ca, cx, rpat) = row
 
-        # Offset für jede Recurrence-Variante
+        # Bestimme Zeitversatz je nach Wiederholungsmuster
         offset_days = 0
         if rpat == "weekly":
             offset_days = 7
@@ -989,13 +942,14 @@ async def check_for_recurring_events():
                 dt_new = dt + timedelta(days=offset_days)
                 return dt_new.isoformat(sep=" ")
             except:
-                return date_str  # Fallback
+                return date_str  # Fallback falls kaputtes Format
 
         new_brief = shift_date(dt_brief)
         new_start = shift_date(dt_start)
         new_game = shift_date(dt_game)
 
         c2 = conn.cursor()
+        # Neues Event anlegen
         c2.execute("""
             INSERT INTO events (
                 name, description,
@@ -1006,9 +960,10 @@ async def check_for_recurring_events():
                 max_commanders_allies, max_commanders_axis,
                 created_at,
                 recurrence_pattern,
-                spawned_next_event
+                spawned_next_event,
+                posted_in_discord
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             name, descr,
             new_brief, new_start, new_game,
@@ -1018,15 +973,57 @@ async def check_for_recurring_events():
             ca, cx,
             datetime.now(),
             rpat,
-            0
+            0,            # spawned_next_event für das NEUE Event = 0 (hat ja noch keinen Nachfolger)
+            0             # posted_in_discord=0 (Standard, wir setzen es gleich auf 1 nach dem Post)
         ))
         new_event_id = c2.lastrowid
 
-        # Altes Event markieren (spawned_next_event=1)
+        # Altes Event als "hat Nachfolger erzeugt" markieren
         c2.execute("UPDATE events SET spawned_next_event=1 WHERE id=?", (old_id,))
         conn.commit()
 
         print(f"[check_for_recurring_events] Neues Event {new_event_id} erzeugt aus {old_id} ({rpat}).")
+
+        # Direkt im Discord posten (sofort nach Erzeugung)
+        # Wir setzen dieses neue Event als CURRENT_EVENT_ID.
+        global CURRENT_EVENT_ID
+        global CURRENT_INFO_MESSAGE_ID, CURRENT_ALLIES_MESSAGE_ID, CURRENT_AXIS_MESSAGE_ID
+        global EVENT_CHANNEL_ID
+
+        CURRENT_EVENT_ID = new_event_id
+        CURRENT_INFO_MESSAGE_ID = None
+        CURRENT_ALLIES_MESSAGE_ID = None
+        CURRENT_AXIS_MESSAGE_ID = None
+
+        channel = bot.get_channel(EVENT_CHANNEL_ID) if EVENT_CHANNEL_ID else None
+        if channel:
+            info_embed = build_event_info_embed(CURRENT_EVENT_ID)
+            allies_embed = build_allies_embed(CURRENT_EVENT_ID)
+            axis_embed = build_axis_embed(CURRENT_EVENT_ID)
+
+            msg_info = await channel.send(embed=info_embed)
+            CURRENT_INFO_MESSAGE_ID = msg_info.id
+
+            msg_allies = await channel.send(embed=allies_embed)
+            CURRENT_ALLIES_MESSAGE_ID = msg_allies.id
+
+            msg_axis = await channel.send(embed=axis_embed, view=PersistentSignUpButtonView())
+            CURRENT_AXIS_MESSAGE_ID = msg_axis.id
+
+            # posted_in_discord = 1
+            c2.execute("UPDATE events SET posted_in_discord=1 WHERE id=?", (new_event_id,))
+            conn.commit()
+
+            # Bot-State speichern
+            save_bot_state(
+                EVENT_CHANNEL_ID,
+                CURRENT_EVENT_ID,
+                CURRENT_INFO_MESSAGE_ID,
+                CURRENT_ALLIES_MESSAGE_ID,
+                CURRENT_AXIS_MESSAGE_ID
+            )
+        else:
+            print("[check_for_recurring_events] Kein EVENT_CHANNEL_ID gesetzt oder Kanal nicht gefunden!")
 
     conn.close()
 
