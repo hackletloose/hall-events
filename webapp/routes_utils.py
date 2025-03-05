@@ -1,6 +1,23 @@
 from datetime import datetime
 from .db import get_connection
 
+def get_event_dict(event_id: int):
+    """
+    Lädt alle Spalten des Events mit der angegebenen ID.
+    Gibt ein Dict oder None zurück.
+    """
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT * FROM events WHERE id=?", (event_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return None  # oder {}
+    cols = [desc[0] for desc in c.description]
+    result = dict(zip(cols, row))
+    conn.close()
+    return result
+
 def init_data_for_event(event_id=None):
     """
     Dummy-Funktion, damit kein Importfehler entsteht.
